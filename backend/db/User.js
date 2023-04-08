@@ -2,22 +2,26 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 require("mongoose-type-email");
 
-let schema = new mongoose.Schema({
-  email: {
-    type: mongoose.SchemaTypes.Email,
-    unique: true,
-    lowercase: true,
-    required: true,
+let schema = new mongoose.Schema(
+  {
+    email: {
+      type: mongoose.SchemaTypes.Email,
+      unique: true,
+      lowercase: true,
+      required: true,
+    },
+    password: {
+      type: String,
+      required: true,
+    },
+    type: {
+      type: String,
+      enum: ["recruiter", "applicant"],
+      required: true,
+    },
   },
-  password: {
-    type: String,
-    required: true,
-  },
-  type: {
-    type: String,
-    required: true,
-  },
-});
+  { collation: { locale: "en" } }
+);
 
 // Password hashing
 schema.pre("save", function (next) {
@@ -38,7 +42,7 @@ schema.pre("save", function (next) {
 });
 
 // Password verification upon login
-schema.methods.login = (password) => {
+schema.methods.login = function (password) {
   let user = this;
 
   return new Promise((resolve, reject) => {
@@ -46,7 +50,11 @@ schema.methods.login = (password) => {
       if (err) {
         reject(err);
       }
-      resolve();
+      if (result) {
+        resolve();
+      } else {
+        reject();
+      }
     });
   });
 };
